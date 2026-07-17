@@ -123,8 +123,31 @@ st.set_page_config(page_title="Condolence Letter Generator", layout="centered")
 st.title("Umur-e-Amma Condolence Letter Portal")
 st.write("Fill out the fields below to generate the official PDF and email it directly to the local Sadr and General Secretary.")
 
-# Web Inputs ordered to match your preferred data entry flow
-jamaat_name = st.text_input("Enter Jamaat Name").strip()
+# Load the Jamaat names list from the Excel spreadsheet for the dropdown
+jamaat_options = []
+if os.path.exists(EXCEL_FILENAME):
+    try:
+        df_list = pd.read_excel(EXCEL_FILENAME)
+        if 'Jamaat' in df_list.columns:
+            # Extract unique values, drop blanks, and sort alphabetically
+            jamaat_options = df_list['Jamaat'].dropna().astype(str).str.strip().unique().tolist()
+            jamaat_options.sort()
+        else:
+            st.error("Error: Could not find a 'Jamaat' column heading in your Excel spreadsheet.")
+    except Exception as e:
+        st.error(f"Error loading dropdown menu options from Excel: {e}")
+else:
+    st.error(f"Error: '{EXCEL_FILENAME}' is missing from the app environment.")
+
+# ==========================================
+# APP INPUT FLOW
+# ==========================================
+# 1. Dynamic Dropdown for Jamaat Name selection
+if jamaat_options:
+    jamaat_name = st.selectbox("Select Jamaat Name", jamaat_options)
+else:
+    # Safe text input fallback just in case the file reading has a hitch
+    jamaat_name = st.text_input("Enter Jamaat Name").strip()
 
 st.subheader("Family Member Details")
 family_member = st.text_input("Enter the name of the family member of the deceased").strip()
@@ -236,7 +259,6 @@ if st.button("Generate & Email Condolence Letter", type="primary"):
                 if success:
                     st.success(f"Letter successfully generated and emailed to {', '.join(emails)}!")
                     
-                    # Provide a local download button on the webpage just in case
                     with open(pdf_filename, "rb") as file:
                         st.download_button(
                             label="Download generated PDF copy",
@@ -247,6 +269,6 @@ if st.button("Generate & Email Condolence Letter", type="primary"):
             else:
                 st.error("Could not send email because the Jamaat name was not found in the Excel directory.")
         
-        # Clean up local generated file from the web node space after processing
+        # Clean up local generated file
         if os.path.exists(pdf_filename):
             os.remove(pdf_filename)
