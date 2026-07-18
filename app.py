@@ -166,7 +166,7 @@ if st.button("Generate & Email Condolence Letter", type="primary"):
         dec_honorific = get_honorific(dec_gender)
         todays_date = datetime.now().strftime("%B %d, %Y")
         
-        pdf_filename = f"{deceased_member}_Condolence_Letter.pdf"
+        pdf_filename = f"Condolence Letter - {deceased_member} - {todays_date}.pdf"
         
         # Build Document Layout
         doc = SimpleDocTemplate(
