@@ -266,7 +266,7 @@ with tab2:
         # Total overall metric card
         st.metric(label="Total Condolence Letters Dispatched Overall", value=len(df_metrics))
         
-        # New Feature: Chronological Month-by-Month Analytics Breakdowns
+        # Chronological Month-by-Month Analytics Breakdowns
         st.subheader("Monthly Metrics Trend")
         try:
             # Safely transform strings to clean datetime formats to support calendar groupings
@@ -278,18 +278,26 @@ with tab2:
             monthly_trends = df_metrics.groupby(['Sort_Key', 'Month-Year']).size().reset_index(name='Letters Dispatched')
             monthly_trends = monthly_trends.sort_values(by='Sort_Key', ascending=True)[['Month-Year', 'Letters Dispatched']]
             
-            st.dataframe(monthly_trends, use_container_width=True)
+            # REMOVE INDEX COLUMN: hide_index=True completely removes the numbering column here
+            st.dataframe(monthly_trends, use_container_width=True, hide_index=True)
         except Exception as date_err:
             st.info("Awaiting formatted historical date inputs to parse timeline groupings.")
         
         st.subheader("Letters Distributed per Local Jamaat")
         jamaat_counts = df_metrics['Jamaat'].value_counts().reset_index()
         jamaat_counts.columns = ['Jamaat Name', 'Letters Issued']
+        
+        # START FROM 1: Shift the index numbering to start from 1 instead of 0
+        jamaat_counts.index = jamaat_counts.index + 1
         st.dataframe(jamaat_counts, use_container_width=True)
         
         st.subheader("Master Historical Audit Log")
         # Display the base dataset cleanly minus temporary calculation columns
         display_cols = [c for c in df_metrics.columns if c not in ['Parsed_Date', 'Month-Year', 'Sort_Key']]
-        st.dataframe(df_metrics[display_cols], use_container_width=True)
+        final_audit_df = df_metrics[display_cols].copy()
+        
+        # START FROM 1: Shift the master historical index numbering to start from 1 instead of 0
+        final_audit_df.index = final_audit_df.index + 1
+        st.dataframe(final_audit_df, use_container_width=True)
     else:
         st.info("No logs found or connection establishing. Once letters are processed, real-time aggregate stats will appear here.")
