@@ -3,7 +3,7 @@ name: Send Monthly Stats Report
 on:
   workflow_dispatch:  # Allows manual testing button
   schedule:
-    # Runs at 23:00 UTC (6 PM CST) on the 28th, 29th, 30th, and 31st of the month
+    # Runs at 23:00 UTC (6 PM CST) on the 28th, 29th, 30th, and 31st of the mon
     - cron: '0 23 28-31 * *'
 
 jobs:
