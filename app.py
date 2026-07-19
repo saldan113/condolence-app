@@ -263,7 +263,24 @@ with tab2:
     
     df_metrics = get_sheet_data()
     if not df_metrics.empty:
+        # Total overall metric card
         st.metric(label="Total Condolence Letters Dispatched Overall", value=len(df_metrics))
+        
+        # New Feature: Chronological Month-by-Month Analytics Breakdowns
+        st.subheader("Monthly Metrics Trend")
+        try:
+            # Safely transform strings to clean datetime formats to support calendar groupings
+            df_metrics['Parsed_Date'] = pd.to_datetime(df_metrics['Date'])
+            df_metrics['Month-Year'] = df_metrics['Parsed_Date'].dt.strftime('%B %Y')
+            df_metrics['Sort_Key'] = df_metrics['Parsed_Date'].dt.strftime('%Y-%m')
+            
+            # Group records and organize chronologically
+            monthly_trends = df_metrics.groupby(['Sort_Key', 'Month-Year']).size().reset_index(name='Letters Dispatched')
+            monthly_trends = monthly_trends.sort_values(by='Sort_Key', ascending=True)[['Month-Year', 'Letters Dispatched']]
+            
+            st.dataframe(monthly_trends, use_container_width=True)
+        except Exception as date_err:
+            st.info("Awaiting formatted historical date inputs to parse timeline groupings.")
         
         st.subheader("Letters Distributed per Local Jamaat")
         jamaat_counts = df_metrics['Jamaat'].value_counts().reset_index()
@@ -271,6 +288,8 @@ with tab2:
         st.dataframe(jamaat_counts, use_container_width=True)
         
         st.subheader("Master Historical Audit Log")
-        st.dataframe(df_metrics, use_container_width=True)
+        # Display the base dataset cleanly minus temporary calculation columns
+        display_cols = [c for c in df_metrics.columns if c not in ['Parsed_Date', 'Month-Year', 'Sort_Key']]
+        st.dataframe(df_metrics[display_cols], use_container_width=True)
     else:
         st.info("No logs found or connection establishing. Once letters are processed, real-time aggregate stats will appear here.")
