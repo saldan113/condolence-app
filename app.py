@@ -5,6 +5,7 @@ from email.encoders import encode_base64
 from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+import json
 import pandas as pd
 from PIL import Image as PILImage  
 import streamlit as st
@@ -15,10 +16,18 @@ import gspread
 from google.oauth2.service_account import Credentials
 
 # ==========================================
+# SECRETS VAULT INJECTION
+# ==========================================
+# Automatically builds the credentials file out of thin air using your Streamlit Secrets vault text
+if "google_creds" in st.secrets:
+    with open("google_creds.json", "w") as f:
+        json.dump(dict(st.secrets["google_creds"]), f)
+
+# ==========================================
 # CONFIGURATION
 # ==========================================
-SENDER_EMAIL = "condolences@ahmadiyya.us"  
-SENDER_PASSWORD = "soqs qzbp brpp pdgm"  
+SENDER_EMAIL = st.secrets["SENDER_EMAIL"] if "SENDER_EMAIL" in st.secrets else "condolences@ahmadiyya.us"
+SENDER_PASSWORD = st.secrets["SENDER_PASSWORD"] if "SENDER_PASSWORD" in st.secrets else "soqs qzbp brpp pdgm"
 CC_EMAIL = "national.ua@ahmadiyya.us"
 EXCEL_FILENAME = "jamaat_directory.xlsx"  
 GOOGLE_SHEET_NAME = "Condolence_Letters_Log"
@@ -69,7 +78,6 @@ def log_to_google_sheets(jamaat, deceased, family_member, relationship):
         
         sheet = client.open(GOOGLE_SHEET_NAME).sheet1
         today_str = datetime.now().strftime("%Y-%m-%d")
-        # Appends Date, Jamaat, Deceased, Family Member, and Relationship
         sheet.append_row([today_str, jamaat, deceased, family_member, relationship])
     except Exception as e:
         st.error(f"Failed to log entry to cloud database: {e}")
@@ -147,10 +155,8 @@ Wassalām,
 # ==========================================
 st.set_page_config(page_title="Condolence Letter Portal", layout="centered")
 
-# Navigation Tabs
 tab1, tab2 = st.tabs(["📝 Generate Letter", "📊 Live Stats Dashboard"])
 
-# Load Jamaat options
 jamaat_options = []
 if os.path.exists(EXCEL_FILENAME):
     try:
@@ -240,7 +246,6 @@ with tab1:
                 emails = lookup_jamaat_emails(jamaat_name)
                 if emails:
                     if send_condolence_email(emails, pdf_filename, family_member, fam_honorific, relationship):
-                        # Log to Google Sheets securely upon email success (now includes relationship variable)
                         log_to_google_sheets(jamaat_name, deceased_member, family_member, relationship)
                         st.success(f"Letter generated and transmitted to {', '.join(emails)}!")
                         
@@ -268,4 +273,4 @@ with tab2:
         st.subheader("Master Historical Audit Log")
         st.dataframe(df_metrics, use_container_width=True)
     else:
-        st.info("No logs found. Once letters are processed, real-time aggregate stats will appear here.")
+        st.info("No logs found or connection establishing. Once letters are processed, real-time aggregate stats will appear here.")
