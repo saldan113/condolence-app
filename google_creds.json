@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "condolence-tracker",
+  "private_key_id": "294702826f4b965298c0c4487c6820e5d4412f4c",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDDMYs1c4p1kx7r\nIq6wHfczrRtGMGLp+VpiLN+yq0ICGg5ouQ/7PMoxGflVV34iulDOLvgpzMYzFZOE\n2Om+lM+lD1L03N3i+tEWEu4aGxEbY23/56kSHHSo6q+JDMSHYxh6oP4RJAKG1yrs\n8hkGOA8ZKsrJg491TWAaFIvWDlrnrATtrIfRyM9g8AW4RsorCnXECvvS1+xEiBAw\nBG0pafuwcDp0JRgy0G0PHxhXzf3FhY97NvDfBmTjjYAyvoSCkuvu1Ye6DD8OVjDh\nY7/eu925nvNyi/QbZt2fK+qfC41nGkbapOMedPFRjA0z+Mqgp/cAPkrRxZEIQ2Ix\ncnPiCuBxAgMBAAECggEAG9tRO7KemwMBEZukhJvyMJzO3KiBJVUh0gsHbc9FH1mq\nnsVyg298h59mVwiihsBCUfqgDg8cZiP5JqdyTHGeZLcYJrvyqrcS6eyPsIgWW+tH\nwpLELUKEX6sGnC+HSK8ayj15pOaXubixdplieuG7PeM+h53P9nSxd2dhQY5Q6OkC\nrDKugihMn5nIDvaKVCYyeIzFhfXvRU1mTjNmGZc5fXk/NfquJYbGenwtiAs7hs6a\nKqJxivymXVe76jipuKGP5c0yVLRbNChz/6waJzCCeGkqsGfo9JMIAtq0j7Ztf8Ow\niM8lom6BSt7OX83F1cNQzIU64K5pCoQ0OlFCvGGuxQKBgQD4rCHtrF0OkW99BkMQ\nFUJNhctff+0bpYoki+loNd+kDsl3R9YKLlWBG2RrGw0amwfeqbKjNeih+qCq38G0\nEbrr0JSZp+CvEBi47FOh8UP28ScQ5vO1QiN/VOkGSl+0R906zMIjwisv8yyuFJP/\nYnsnTGTRGPbASf/xLeX13UlzFwKBgQDI8f3se3PxbIuS4mPRcOKbnlBODOrWAbNK\nb/jaK8BXxs0JGXsJTdYYERuKt2+wjl0lvYv2XPAR2QUarukb1u3v/Jy6c8GHtomq\nNPGhaM+UbR061ABvxkulSxcWTG7VJeJp8zw1+Fpnhu7636uVvtdtFvVwCPgnLrlH\nuWo/84AdtwKBgQDXax5VK1zN0vVWxEbyNshiKcZdK4/2xDfgoweGjCz5jQm/+A4W\ncb8GgflCw4NdifGOVUl4E6o8L8ZhYEcIO9fGksE4PvLoFLSl9awZfMzYrl2eScPT\nQMFJfAAFwAYaQasHVfvUSE9rUWhiQVdYBDMVfxtS/CI9v50ljBJLI/CN7wKBgEhv\nMuEz/y9fuVBRWzn8PzNpdfksntpV8pM6mbHLY6JAf1hwXvGTpUE3qX3vcctrBhi8\not9D0SYd3MEpm831Q//mR3jOkUyieC1quE8+wNT4IDk8govIJyyGTOQ02R7scRlQ\nHLw3sh7vfOXiCrAIAw/H3uFr2kgFh7RbGfnDhMMxAoGAZchw4Zz1dVUmUJeCWjDY\nv1SI4y11aguYtWxZB0FDTS7DMKzzAO9qGSk6WXEo/xL2GEW1TMYKK2z03f9vzV6F\nEr8TCbSMEUh/rWxFIh56bzitKrAo+I8NLHbqXw1PLKZXv3I+kZpr5vYzKgnvAQbt\nO91AIkfd+Y0YYOX8WHKS+ck=\n-----END PRIVATE KEY-----\n",
+  "client_email": "streamlit-logger@condolence-tracker.iam.gserviceaccount.com",
+  "client_id": "101664973058805258510",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/streamlit-logger%40condolence-tracker.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}
