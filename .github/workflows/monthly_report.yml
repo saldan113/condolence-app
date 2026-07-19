@@ -3,7 +3,7 @@ name: Send Monthly Stats Report
 on:
   workflow_dispatch:  # Allows manual testing button
   schedule:
-    # Runs at 23:00 UTC (6 PM CST) on the 28th, 29th, 30th, and 31st of the mon
+    # Runs at 23:00 UTC (6 PM CST) on the 28th, 29th, 30th, and 31st of the month
     - cron: '0 23 28-31 * *'
 
 jobs:
@@ -22,9 +22,12 @@ jobs:
       run: |
         pip install pandas gspread google-auth openpyxl
 
+    - name: Inject Secure Google Key
+      run: |
+        echo '${{ secrets.GOOGLE_CREDS_JSON }}' > google_creds.json
+
     - name: Run Report
       run: |
-        # If triggered manually via button, run instantly. Otherwise, check if it is the last day of the month.
         if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
           echo "Manual trigger detected. Running report immediately."
           python monthly_report.py
