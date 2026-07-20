@@ -18,7 +18,6 @@ from google.oauth2.service_account import Credentials
 # ==========================================
 # SECRETS VAULT INJECTION
 # ==========================================
-# Automatically builds the credentials file out of thin air using your Streamlit Secrets vault text
 if "google_creds" in st.secrets:
     with open("google_creds.json", "w") as f:
         json.dump(dict(st.secrets["google_creds"]), f)
@@ -124,6 +123,7 @@ Jazākumullāh,
 
 Wassalām,
 
+Salman Dawood Munir, Assistant
 'Umūr-e-‘Amma Department"""
 
     msg.attach(MIMEText(email_body, 'plain', 'utf-8'))
@@ -263,22 +263,17 @@ with tab2:
     
     df_metrics = get_sheet_data()
     if not df_metrics.empty:
-        # Total overall metric card
         st.metric(label="Total Condolence Letters Dispatched Overall", value=len(df_metrics))
         
-        # Chronological Month-by-Month Analytics Breakdowns
         st.subheader("Monthly Metrics Trend")
         try:
-            # Safely transform strings to clean datetime formats to support calendar groupings
             df_metrics['Parsed_Date'] = pd.to_datetime(df_metrics['Date'])
             df_metrics['Month-Year'] = df_metrics['Parsed_Date'].dt.strftime('%B %Y')
             df_metrics['Sort_Key'] = df_metrics['Parsed_Date'].dt.strftime('%Y-%m')
             
-            # Group records and organize chronologically
             monthly_trends = df_metrics.groupby(['Sort_Key', 'Month-Year']).size().reset_index(name='Letters Dispatched')
             monthly_trends = monthly_trends.sort_values(by='Sort_Key', ascending=True)[['Month-Year', 'Letters Dispatched']]
             
-            # Universally safe way to drop index numbering display across all versions of Streamlit
             st.dataframe(monthly_trends.set_index('Month-Year'), use_container_width=True)
         except Exception as date_err:
             st.info("Awaiting formatted historical date inputs to parse timeline groupings.")
@@ -287,16 +282,13 @@ with tab2:
         jamaat_counts = df_metrics['Jamaat'].value_counts().reset_index()
         jamaat_counts.columns = ['Jamaat Name', 'Letters Issued']
         
-        # START FROM 1: Shift the index numbering to start from 1 instead of 0
         jamaat_counts.index = jamaat_counts.index + 1
         st.dataframe(jamaat_counts, use_container_width=True)
         
         st.subheader("Master Historical Audit Log")
-        # Display the base dataset cleanly minus temporary calculation columns
         display_cols = [c for c in df_metrics.columns if c not in ['Parsed_Date', 'Month-Year', 'Sort_Key']]
         final_audit_df = df_metrics[display_cols].copy()
         
-        # START FROM 1: Shift the master historical index numbering to start from 1 instead of 0
         final_audit_df.index = final_audit_df.index + 1
         st.dataframe(final_audit_df, use_container_width=True)
     else:
