@@ -1,73 +1,134 @@
 import os
+import smtplib
 from datetime import datetime
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 import pandas as pd
 import gspread
 from google.oauth2.service_account import Credentials
-import smtplib
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
 
 # ==========================================
-# REPORTING CONFIGURATION
+# CONFIGURATION
 # ==========================================
-REPORT_RECIPIENT = "national.ua@ahmadiyya.us"
-SENDER_EMAIL = "condolences@ahmadiyya.us"
-SENDER_PASSWORD = "soqs qzbp brpp pdgm"
+SENDER_EMAIL = os.environ.get("SENDER_EMAIL", "condolences@ahmadiyya.us")
+SENDER_PASSWORD = os.environ.get("SENDER_PASSWORD", "soqs qzbp brpp pdgm")
+RECIPIENT_EMAIL = "national.ua@ahmadiyya.us"
 GOOGLE_SHEET_NAME = "Condolence_Letters_Log"
 CREDS_FILE = "google_creds.json"
 # ==========================================
 
 def run_monthly_report():
+    print("Starting monthly report generation...")
+    
     if not os.path.exists(CREDS_FILE):
-        print("Missing credentials file.")
+        print(f"Error: Credentials file '{CREDS_FILE}' not found.")
         return
-
+        
     scopes = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
     creds = Credentials.from_service_account_file(CREDS_FILE, scopes=scopes)
     client = gspread.authorize(creds)
-    sheet = client.open(GOOGLE_SHEET_NAME).sheet1
     
-    df = pd.DataFrame(sheet.get_all_records())
-    if df.empty:
-        print("No letters logged yet.")
+    sheet = client.open(GOOGLE_SHEET_NAME).sheet1
+    records = sheet.get_all_records()
+    if not records:
+        print("No records found in the log sheet.")
+        return
+        
+    df = pd.DataFrame(records)
+    
+    df['Parsed_Date'] = pd.to_datetime(df['Date'])
+    now = datetime.now()
+    current_year = now.year
+    current_month = now.month
+    current_month_name = now.strftime("%B %Y")
+    
+    df_current = df[(df['Parsed_Date'].dt.year == current_year) & (df['Parsed_Date'].dt.month == current_month)]
+    
+    total_letters = len(df_current)
+    if total_letters == 0:
+        print(f"No letters found for the month of {current_month_name}. Skipping email report.")
         return
 
-    df['Date'] = pd.to_datetime(df['Date'])
-    current_month = datetime.now().month
-    current_year = datetime.now().year
-    current_month_name = datetime.now().strftime("%B")
-
-    monthly_data = df[(df['Date'].dt.month == current_month) & (df['Date'].dt.year == current_year)]
-    total_letters = len(monthly_data)
-
-    email_body = f"Assalamo Alaikum,\n\nHere is the Umur-e-Amma monthly condolence letter summary report for {current_month_name} {current_year}.\n\n"
-    email_body += f"Total Letters Dispatched This Month: {total_letters}\n\n"
+    jamaat_counts = df_current['Jamaat'].value_counts().reset_index()
+    jamaat_counts.columns = ['Jamaat Name', 'Letters Handled']
+    jamaat_counts = jamaat_counts.sort_values(by='Jamaat Name')
     
-    if total_letters > 0:
-        email_body += "Breakdown by Local Jamaat:\n"
-        jamaat_counts = monthly_data['Jamaat'].value_counts()
-        for jamaat, count in jamaat_counts.items():
-            email_body += f" * {jamaat}: {count} letter(s)\n"
-    else:
-        email_body += "No condolence letters were generated during this monthly period.\n"
+    breakdown_rows = ""
+    for _, row in jamaat_counts.iterrows():
+        breakdown_rows += f"<tr><td>{row['Jamaat Name']}</td><td>{row['Letters Handled']}</td></tr>"
+        
+    audit_list_items = ""
+    df_current_sorted = df_current.sort_values(by='Parsed_Date', ascending=True)
+    
+    for idx, row in enumerate(df_current_sorted.iterrows(), 1):
+        data = row[1]
+        audit_list_items += f"""
+        <li>
+            <strong>{data['Date']}</strong> | <strong>{data['Jamaat']}</strong><br>
+            <em>Deceased:</em> {data['Deceased']} ({data['Relationship']})<br>
+            <em>Family Member:</em> {data['FamilyMember']}
+        </li>
+        <br>
+        """
 
-    email_body += "\nJazakumullah,\n\n'Umur-e-Amma Automated Reporting System"
+    email_body = f"""
+    <html>
+    <body style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">
+        <p>Assalamo Alaikum,</p>
+        <p>This is the automated monthly activity report for the <strong>'Umūr-e-'Amma Department</strong>, capturing all condolence letters generated and transmitted during the month of <strong>{current_month_name}</strong>.</p>
+        
+        <h3>📊 Monthly Summary Overview</h3>
+        <ul>
+            <li><strong>Total Letters Dispatched This Month:</strong> {total_letters}</li>
+        </ul>
+        
+        <hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
+        
+        <h3>📍 Breakdown by Local Jamaat</h3>
+        <p>Below is the volume distribution of letters handled for individual Jamaats during this reporting cycle:</p>
+        <table border="1" cellpadding="6" cellspacing="0" style="border-collapse: collapse; border-color: #ddd; width: 60%;">
+            <tr style="background-color: #f2f2f2; text-align: left;">
+                <th>Local Jamaat Name</th>
+                <th>Letters Handled</th>
+            </tr>
+            {breakdown_rows}
+        </table>
+        
+        <hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
+        
+        <h3>📝 Historical Audit Log (Current Month Entries)</h3>
+        <p>For reference, here are the specific record details logged for this month's dispatches:</p>
+        <ol style="padding-left: 20px;">
+            {audit_list_items}
+        </ol>
+        
+        <hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
+        <p style="font-size: 11px; color: #777; font-style: italic;">This is an automated system notification generated by the Condolence Letter Portal backend framework. No reply is required.</p>
+        
+        <p>Wassalām,<br>
+        Salman Dawood Munir, Assistant<br>
+        <strong>'Umūr-e-'Amma Department</strong><br>
+        Jamaat Ahmadiyya USA</p>
+    </body>
+    </html>
+    """
 
-    msg = MIMEMultipart()
+    msg = MIMEMultipart("alternative")
     msg['From'] = SENDER_EMAIL
-    msg['To'] = REPORT_RECIPIENT
-    msg['Subject'] = f"Monthly Condolence Letters Summary - {current_month_name} {current_year}"
-    msg.attach(MIMEText(email_body, 'plain', 'utf-8'))
-
+    msg['To'] = RECIPIENT_EMAIL
+    msg['Subject'] = f"Monthly Condolence Letters Summary - {current_month_name}"
+    
+    msg.attach(MIMEText(email_body, "html", "utf-8"))
+    
     try:
         server = smtplib.SMTP("smtp.gmail.com", 587)
         server.starttls()
         server.login(SENDER_EMAIL, SENDER_PASSWORD)
-        server.sendmail(SENDER_EMAIL, [REPORT_RECIPIENT], msg.as_string())
+        server.sendmail(SENDER_EMAIL, [RECIPIENT_EMAIL], msg.as_string())
         server.quit()
-        print("Monthly statistics report delivered successfully.")
+        print(f"Monthly report successfully transmitted to {RECIPIENT_EMAIL}")
     except Exception as e:
-        print(f"Failed to transmit email: {e}")
+        print(f"SMTP Transmission Failure: {e}")
 
 if __name__ == "__main__":
     run_monthly_report()
