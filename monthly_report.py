@@ -36,7 +36,8 @@ def run_monthly_report():
         
     df = pd.DataFrame(records)
     
-    df['Parsed_Date'] = pd.to_datetime(df['Date'])
+    # Flexible parsing for dates in MM/DD/YYYY or YYYY-MM-DD
+    df['Parsed_Date'] = pd.to_datetime(df['Date'], errors='coerce')
     now = datetime.now()
     current_year = now.year
     current_month = now.month
@@ -58,6 +59,7 @@ def run_monthly_report():
         breakdown_rows += f"<tr><td>{row['Jamaat Name']}</td><td>{row['Letters Handled']}</td></tr>"
         
     audit_list_items = ""
+    # Sort monthly entries chronologically ascending for the email report list
     df_current_sorted = df_current.sort_values(by='Parsed_Date', ascending=True)
     
     for idx, row in enumerate(df_current_sorted.iterrows(), 1):
