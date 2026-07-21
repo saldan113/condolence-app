@@ -214,7 +214,7 @@ with tab1:
             story.append(Spacer(1, 4))
             
             relationship_lower = relationship.lower()
-            body_text_1 = f"On behalf of Jamaat Ahmadiyya USA, we express our deepest condolences on the passing of your beloved <b>{relationship_lower}</b>, Respected <b>{deceased_member} {dec_honorific}</b>."
+            body_text_1 = f"On behalf of Jamaat Ahmadiyya USA, we express our deepest condolences on the passing of your beloved {relationship_lower}, Respected <b>{deceased_member} {dec_honorific}</b>."
             story.append(Paragraph(body_text_1, body_style))
             
             if os.path.exists("istirja.png"):
