@@ -95,7 +95,7 @@ def get_sheet_data():
     except Exception:
         return pd.DataFrame()
 
-def send_condolence_email(recipient_emails, attachment_path, family_member, fam_honorific, relationship):
+def send_condolence_email(recipient_emails, attachment_path, family_member, fam_honorific, relationship, deceased_member):
     recipients = [email for email in recipient_emails if email and str(email).lower() != 'nan']
     if not recipients:
         st.error("Email broadcast failed: Recipient list is empty or invalid.")
@@ -105,15 +105,18 @@ def send_condolence_email(recipient_emails, attachment_path, family_member, fam_
     msg['From'] = SENDER_EMAIL
     msg['To'] = ", ".join(recipients)
     msg['Cc'] = CC_EMAIL
-    msg['Subject'] = f"Condolences - {relationship} of {family_member} {fam_honorific}"
+    
+    # Capitalizes the relationship specifically for the subject line
+    relationship_title = relationship.title()
+    msg['Subject'] = f"Condolences - {relationship_title} of {family_member} {fam_honorific}"
 
-    email_body = """Assalamo Alaikum,
+    email_body = f"""Assalamo Alaikum,
 
 Dear Respected Sadr sahib and Secretary sahib,
 
 I pray this message finds you all in the best of health and high spirits.
 
-Attached is the condolences letter prepared on behalf of the ‘Umūr-e-‘Amma Department regarding the recent passing. Kindly review the letter and ensure it is shared promptly with the relevant families and members within your local Jamaat, in accordance with Jamaat protocols.
+Attached is the condolences letter prepared on behalf of the ‘Umūr-e-‘Amma Department regarding the recent passing of {deceased_member}, {relationship} of {family_member}. Kindly review the letter and ensure it is shared promptly with the relevant family members of the deceased within your local Jamaat, in accordance with Jamaat protocols.
 
 If you have any questions or require any further clarification, please feel free to reach out.
 
@@ -209,7 +212,9 @@ with tab1:
             story.append(Paragraph("<i>Assalamu Alaikum wa Rahmatullahi wa Barakatuhu,</i>", body_style))
             story.append(Spacer(1, 4))
             
-            body_text_1 = f"On behalf of Jamaat Ahmadiyya USA, we express our deepest condolences on the passing of your beloved family member, Respected <b>{deceased_member} {dec_honorific}</b>."
+            # Keeps relationship explicitly lowercase for PDF sentence grammar
+            relationship_lower = relationship.lower()
+            body_text_1 = f"On behalf of Jamaat Ahmadiyya USA, we express our deepest condolences on the passing of your beloved <b>{relationship_lower}</b>, Respected <b>{deceased_member} {dec_honorific}</b>."
             story.append(Paragraph(body_text_1, body_style))
             
             if os.path.exists("istirja.png"):
@@ -245,7 +250,7 @@ with tab1:
             with st.spinner("Processing cloud logging and broadcasting email..."):
                 emails = lookup_jamaat_emails(jamaat_name)
                 if emails:
-                    if send_condolence_email(emails, pdf_filename, family_member, fam_honorific, relationship):
+                    if send_condolence_email(emails, pdf_filename, family_member, fam_honorific, relationship, deceased_member):
                         log_to_google_sheets(jamaat_name, deceased_member, family_member, relationship)
                         st.success(f"Letter generated and transmitted to {', '.join(emails)}!")
                         
