@@ -107,17 +107,19 @@ def send_condolence_email(recipient_emails, attachment_path, family_member, fam_
     msg['To'] = ", ".join(recipients)
     msg['Cc'] = CC_EMAIL
     
+    # Capitalized relationship for the email subject line
     relationship_title = relationship.title()
     msg['Subject'] = f"Condolences - {relationship_title} of {family_member} {fam_honorific}"
 
-    # Updated sentence regarding family members of the deceased
+    # Lowercase relationship for the body sentence
+    relationship_lower = relationship.lower()
     email_body = f"""Assalamo Alaikum,
 
 Dear Respected Sadr sahib and Secretary sahib,
 
 I pray this message finds you all in the best of health and high spirits.
 
-Attached is the condolences letter prepared on behalf of the ‘Umūr-e-‘Amma Department regarding the recent passing of {deceased_member}, {relationship} of {family_member}. Kindly review the letter and ensure it is shared promptly with the relevant family members of the deceased within your local Jamaat, in accordance with Jamaat protocols.
+Attached is the condolences letter prepared on behalf of the ‘Umūr-e-‘Amma Department regarding the recent passing of {deceased_member}, {relationship_lower} of {family_member}. Kindly review the letter and ensure it is shared promptly with the relevant family members of the deceased within your local Jamaat, in accordance with Jamaat protocols.
 
 If you have any questions or require any further clarification, please feel free to reach out.
 
