@@ -76,7 +76,8 @@ def log_to_google_sheets(jamaat, deceased, family_member, relationship):
         client = gspread.authorize(creds)
         
         sheet = client.open(GOOGLE_SHEET_NAME).sheet1
-        today_str = datetime.now().strftime("%Y-%m-%d")
+        # Save date in MM/DD/YYYY format
+        today_str = datetime.now().strftime("%m/%d/%Y")
         sheet.append_row([today_str, jamaat, deceased, family_member, relationship])
     except Exception as e:
         st.error(f"Failed to log entry to cloud database: {e}")
@@ -106,10 +107,10 @@ def send_condolence_email(recipient_emails, attachment_path, family_member, fam_
     msg['To'] = ", ".join(recipients)
     msg['Cc'] = CC_EMAIL
     
-    # Capitalizes the relationship specifically for the subject line
     relationship_title = relationship.title()
     msg['Subject'] = f"Condolences - {relationship_title} of {family_member} {fam_honorific}"
 
+    # Updated sentence regarding family members of the deceased
     email_body = f"""Assalamo Alaikum,
 
 Dear Respected Sadr sahib and Secretary sahib,
@@ -212,7 +213,6 @@ with tab1:
             story.append(Paragraph("<i>Assalamu Alaikum wa Rahmatullahi wa Barakatuhu,</i>", body_style))
             story.append(Spacer(1, 4))
             
-            # Keeps relationship explicitly lowercase for PDF sentence grammar
             relationship_lower = relationship.lower()
             body_text_1 = f"On behalf of Jamaat Ahmadiyya USA, we express our deepest condolences on the passing of your beloved <b>{relationship_lower}</b>, Respected <b>{deceased_member} {dec_honorific}</b>."
             story.append(Paragraph(body_text_1, body_style))
@@ -232,7 +232,9 @@ with tab1:
             translation_text = "“Surely, to Allah we belong, and to Him we return,” (The Holy Qur'an, 2:157)."
             story.append(Paragraph(translation_text, translation_style))
             
-            body_text_2 = "May Allah the Almighty grant them <i>Maghfirat</i> (forgiveness) and <i>Janat al-Firdous</i> (loftiest paradise). May He grant the bereaved solace and patience."
+            # Dynamic pronoun based on deceased gender (him/her)
+            pronoun = "him" if dec_gender == "Male" else "her"
+            body_text_2 = f"May Allah the Almighty grant {pronoun} <i>Maghfirat</i> (forgiveness) and <i>Janat al-Firdous</i> (loftiest paradise). May He grant the bereaved solace and patience."
             story.append(Paragraph(body_text_2, body_style))
             story.append(Spacer(1, 8))
             story.append(Paragraph("With heartfelt prayers,", body_style))
@@ -272,7 +274,8 @@ with tab2:
         
         st.subheader("Monthly Metrics Trend")
         try:
-            df_metrics['Parsed_Date'] = pd.to_datetime(df_metrics['Date'])
+            # Parse dates flexibly (supports MM/DD/YYYY, YYYY-MM-DD, etc.)
+            df_metrics['Parsed_Date'] = pd.to_datetime(df_metrics['Date'], errors='coerce')
             df_metrics['Month-Year'] = df_metrics['Parsed_Date'].dt.strftime('%B %Y')
             df_metrics['Sort_Key'] = df_metrics['Parsed_Date'].dt.strftime('%Y-%m')
             
@@ -292,9 +295,14 @@ with tab2:
         
         st.subheader("Master Historical Audit Log")
         display_cols = [c for c in df_metrics.columns if c not in ['Parsed_Date', 'Month-Year', 'Sort_Key']]
-        final_audit_df = df_metrics[display_cols].copy()
         
-        final_audit_df.index = final_audit_df.index + 1
+        # Sort master audit log by latest date descending
+        if 'Parsed_Date' in df_metrics.columns:
+            final_audit_df = df_metrics.sort_values(by='Parsed_Date', ascending=False)[display_cols].copy()
+        else:
+            final_audit_df = df_metrics[display_cols].copy()
+            
+        final_audit_df.index = range(1, len(final_audit_df) + 1)
         st.dataframe(final_audit_df, use_container_width=True)
     else:
         st.info("No logs found or connection establishing. Once letters are processed, real-time aggregate stats will appear here.")
